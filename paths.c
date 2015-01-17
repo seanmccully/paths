@@ -16,7 +16,7 @@ typedef struct {
   int len;
 } SB;
 
-static void 
+static void
 sbinit(SB *sb)
 {
   sb->buffer = (char*)malloc(SBINCREMENT);
@@ -108,7 +108,7 @@ sbsetpush(lua_State *L,  SB *sb, const char *s)
 /* filep, dirp, basename, dirname */
 
 
-static int 
+static int
 filep(lua_State *L, int i)
 {
   const char *s = luaL_checkstring(L, i);
@@ -116,20 +116,20 @@ filep(lua_State *L, int i)
   struct _stat buf;
   if (_stat(s,&buf) < 0)
     return 0;
-  if (buf.st_mode & S_IFDIR) 
+  if (buf.st_mode & S_IFDIR)
     return 0;
 #else
   struct stat buf;
   if (stat(s,&buf) < 0)
     return 0;
-  if (buf.st_mode & S_IFDIR) 
+  if (buf.st_mode & S_IFDIR)
     return 0;
 #endif
   return 1;
 }
 
 
-static int 
+static int
 dirp(lua_State *L, int i)
 {
   const char *s = luaL_checkstring(L, i);
@@ -137,8 +137,8 @@ dirp(lua_State *L, int i)
   char buffer[8];
   struct _stat buf;
   const char *last;
-  if ((s[0]=='/' || s[0]=='\\') && 
-      (s[1]=='/' || s[1]=='\\') && !s[2]) 
+  if ((s[0]=='/' || s[0]=='\\') &&
+      (s[1]=='/' || s[1]=='\\') && !s[2])
     return 1;
   if (s[0] && isalpha((unsigned char)(s[0])) && s[1] == ':' && s[2] == 0)
     { buffer[0]=s[0]; buffer[1]=':'; buffer[2]='.'; buffer[3]=0; s = buffer; }
@@ -171,7 +171,7 @@ lua_dirp(lua_State *L)
 }
 
 
-static int 
+static int
 lua_basename(lua_State *L)
 {
   const char *fname = luaL_checkstring(L, 1);
@@ -220,7 +220,7 @@ lua_basename(lua_State *L)
       sb.len = s - sb.buffer;
   }
   return sbpush(L, &sb);
-  
+
 #else
 
   int sl;
@@ -256,7 +256,7 @@ lua_basename(lua_State *L)
 }
 
 
-static int 
+static int
 lua_dirname(lua_State *L)
 {
   const char *fname = luaL_checkstring(L, 1);
@@ -316,7 +316,7 @@ lua_dirname(lua_State *L)
 
   const char *s = fname;
   const char *p = 0;
-  SB sb; 
+  SB sb;
   sbinit(&sb);
   while (*s) {
     if (s[0]=='/' && s[1] && s[1]!='/')
@@ -365,7 +365,7 @@ lua_cwd(lua_State *L)
   return sbpush(L, &sb);
 
 #elif HAVE_GETCWD
-  
+
   const char *s;
   SB sb;
   sbinit(&sb);
@@ -381,11 +381,11 @@ lua_cwd(lua_State *L)
   return sbpush(L, &sb);
 
 #else
-  
+
   const char *s;
   SB sb;
   sbinit(&sb);
-  sbgrow(&sb, PATH_MAX); 
+  sbgrow(&sb, PATH_MAX);
   s = getwd(sb.buffer);
   if (! s)
     return sbsetpush(L, &sb, ".");
@@ -397,7 +397,7 @@ lua_cwd(lua_State *L)
 
 
 
-static int 
+static int
 concat_fname(lua_State *L, const char *fname)
 {
   const char *from = lua_tostring(L, -1);
@@ -429,10 +429,10 @@ concat_fname(lua_State *L, const char *fname)
   } else if (fname[0] && 	              /* Case "x:abcd"   */
              isalpha((unsigned char)(fname[0])) && fname[1]==':') {
     if (fname[2]!='/' && fname[2]!='\\') {
-      if (sb.len < 2 || sb.buffer[1]!=':' 
+      if (sb.len < 2 || sb.buffer[1]!=':'
           || !isalpha((unsigned char)(sb.buffer[0]))
           || (toupper((unsigned char)sb.buffer[0]) !=
-              toupper((unsigned char)fname[0]) ) ) 
+              toupper((unsigned char)fname[0]) ) )
         {
           int l;
           char drv[4];
@@ -451,7 +451,7 @@ concat_fname(lua_State *L, const char *fname)
       fname += 2;
     } else {
       sb.len = 0;                              /* Case "x:/abcd"  */
-      sbadd1(&sb, toupper((unsigned char)fname[0])); 
+      sbadd1(&sb, toupper((unsigned char)fname[0]));
       sbaddn(&sb, ":/", 2);
       fname += 2;
       while (*fname == '/' || *fname == '\\')
@@ -484,18 +484,18 @@ concat_fname(lua_State *L, const char *fname)
 	  continue;
       }
     }
-    if (sb.len==0 || 
+    if (sb.len==0 ||
         (sb.buffer[sb.len-1]!='/' && sb.buffer[sb.len-1]!='\\') )
       sbadd1(&sb, '/');
     while (*fname && *fname!='/' && *fname!='\\')
       sbadd1(&sb, *fname++);
   }
-             
+
 #else
   SB sb;
   sbinit(&sb);
 
-  if (fname && fname[0]=='/') 
+  if (fname && fname[0]=='/')
     sbadd1(&sb, '/');
   else
     sbaddn(&sb, from, strlen(from));
@@ -528,8 +528,8 @@ concat_fname(lua_State *L, const char *fname)
     while (*fname!=0 && *fname!='/')
       sbadd1(&sb, *fname++);
   }
-  
-  
+
+
 #endif
 
 }
@@ -555,7 +555,7 @@ lua_concatfname(lua_State *L)
 /* execdir */
 
 
-static int 
+static int
 lua_execdir(lua_State *L)
 {
   const char *s = 0;
@@ -588,8 +588,8 @@ lua_dir(lua_State *L)
   long hfind;
   /* special cases */
   lua_createtable(L, 0, 0);
-  if ((s[0]=='/' || s[0]=='\\') && 
-      (s[1]=='/' || s[1]=='\\') && !s[2]) 
+  if ((s[0]=='/' || s[0]=='\\') &&
+      (s[1]=='/' || s[1]=='\\') && !s[2])
     {
       int drive;
       hfind = GetLogicalDrives();
@@ -598,7 +598,7 @@ lua_dir(lua_State *L)
           lua_pushfstring(L, "%c:/", drive);
           lua_rawseti(L, -2, ++k);
         }
-    } 
+    }
   else if (dirp(L, 1)) {
     lua_pushliteral(L, "..");
     lua_rawseti(L, -2, ++k);
@@ -642,7 +642,7 @@ lua_dir(lua_State *L)
     lua_pushnil(L);
 
 #endif
-  
+
   return 1;
 }
 
@@ -658,7 +658,7 @@ struct tmpname_s {
     char tmp[4];
 };
 
-static int 
+static int
 gc_tmpname(lua_State *L)
 {
   if (lua_isuserdata(L, -1))
@@ -676,7 +676,7 @@ gc_tmpname(lua_State *L)
 
 }
 
-static void 
+static void
 add_tmpname(lua_State *L, const char *tmp)
 {
   struct tmpname_s **pp = 0;
@@ -721,7 +721,7 @@ add_tmpname(lua_State *L, const char *tmp)
 }
 
 
-static int 
+static int
 lua_tmpname(lua_State *L)
 {
 #ifdef _WIN32
@@ -748,7 +748,7 @@ lua_tmpname(lua_State *L)
 /* ------------------------------------------------------ */
 /* mkdir, rmdir */
 
-static int 
+static int
 pushresult (lua_State *L, int i, const char *filename) {
   int en = errno;
   if (i) {
@@ -763,7 +763,7 @@ pushresult (lua_State *L, int i, const char *filename) {
   }
 }
 
-static int 
+static int
 lua_mkdir(lua_State *L)
 {
    int status = 0;
@@ -782,7 +782,7 @@ lua_mkdir(lua_State *L)
    return pushresult(L, status == 0, s);
 }
 
-static int 
+static int
 lua_rmdir(lua_State *L)
 {
   const char *s = luaL_checkstring(L, 1);
@@ -799,7 +799,7 @@ lua_rmdir(lua_State *L)
 /* uname */
 
 
-static int 
+static int
 lua_uname(lua_State *L)
 {
 #if defined(_WIN32)
@@ -837,7 +837,7 @@ lua_uname(lua_State *L)
 #endif
 }
 
-static int 
+static int
 lua_getregistryvalue(lua_State *L)
 {
 #ifdef _WIN32
@@ -848,12 +848,12 @@ lua_getregistryvalue(lua_State *L)
         "HKEY_LOCAL_MACHINE",
         "HKEY_USERS",
         NULL };
-    static HKEY keys[] = { 
-        HKEY_CLASSES_ROOT, 
-        HKEY_CURRENT_CONFIG, 
-        HKEY_CURRENT_USER, 
-        HKEY_LOCAL_MACHINE, 
-        HKEY_USERS 
+    static HKEY keys[] = {
+        HKEY_CLASSES_ROOT,
+        HKEY_CURRENT_CONFIG,
+        HKEY_CURRENT_USER,
+        HKEY_LOCAL_MACHINE,
+        HKEY_USERS
     };
 
     HKEY rkey = keys[ luaL_checkoption(L, 1, NULL, keynames) ];
@@ -882,14 +882,14 @@ lua_getregistryvalue(lua_State *L)
     {
         len += 8;
         data = (char*)malloc(len);
-        if (! data) 
+        if (! data)
             luaL_error(L, "out of memory");
         res = RegQueryValueExA(skey, value, NULL, &type, (LPBYTE)data, &len);
     }
     RegCloseKey(skey);
     if (res != ERROR_SUCCESS)
     {
-        if (data) 
+        if (data)
             free(data);
         lua_pushnil(L);
         lua_pushinteger(L, res);
@@ -905,7 +905,7 @@ lua_getregistryvalue(lua_State *L)
     {
     case REG_DWORD:
       lua_pushinteger(L, (lua_Integer)*(const DWORD*)data);
-      if (data) 
+      if (data)
           free(data);
       return 1;
     case REG_EXPAND_SZ:
@@ -914,7 +914,7 @@ lua_getregistryvalue(lua_State *L)
           if ((len = ExpandEnvironmentStrings(data, NULL, 0)) > 0)
           {
             char *buf = (char*)malloc(len + 8);
-            if (!buf) 
+            if (!buf)
                 luaL_error(L, "out of memory");
             len = ExpandEnvironmentStrings(data, buf, len+8);
             free(data);
@@ -924,7 +924,7 @@ lua_getregistryvalue(lua_State *L)
       /* fall thru */
     case REG_SZ:
       if (data && len > 0)
-        if (((const char*)data)[len-1] == 0)  
+        if (((const char*)data)[len-1] == 0)
           len -= 1;
       /* fall thru */
     case REG_BINARY:
@@ -932,7 +932,7 @@ lua_getregistryvalue(lua_State *L)
         lua_pushlstring(L, (const char*)data, (int)len);
       else
         lua_pushliteral(L, "");
-      if (data) 
+      if (data)
           free(data);
       return 1;
       /* unimplemented */
@@ -977,19 +977,17 @@ lua_getregistryvalue(lua_State *L)
 
 /* {{{ functions copied or derived from loadlib.c */
 
-static int readable (const char *filename) 
-{  
+static int readable (const char *filename)
+{
   FILE *f = fopen(filename, "r");  /* try to open file */
   if (f == NULL) return 0;  /* open failed */
   fclose(f);
   return 1;
 }
 
-#if LUA_VERSION_NUM == 502 /* LUA52 compatibility defs */
 #define LUA_PATHSEP ";"
 #define PATHS_LUA_CLEANUP_DEFS 1
-#endif
-static const char *pushnexttemplate (lua_State *L, const char *path) 
+static const char *pushnexttemplate (lua_State *L, const char *path)
 {
   const char *l;
   while (*path == *LUA_PATHSEP) path++;  /* skip separators */
@@ -999,11 +997,8 @@ static const char *pushnexttemplate (lua_State *L, const char *path)
   lua_pushlstring(L, path, l - path);  /* template */
   return l;
 }
-#ifdef PATHS_LUA_CLEANUP_DEFS /* cleanup after yourself */
-#undef LUA_PATHSEP
-#endif
 
-static const char *pushfilename (lua_State *L, const char *name) 
+static const char *pushfilename (lua_State *L, const char *name)
 {
   const char *path;
   const char *filename;
@@ -1012,7 +1007,7 @@ static const char *pushfilename (lua_State *L, const char *name)
   lua_remove(L, -2);
   if (! (path = lua_tostring(L, -1)))
     luaL_error(L, LUA_QL("package.cpath") " must be a string");
-  lua_pushliteral(L, ""); 
+  lua_pushliteral(L, "");
   while ((path = pushnexttemplate(L, path))) {
     filename = luaL_gsub(L, lua_tostring(L, -1), "?", name);
     lua_remove(L, -2);
@@ -1054,7 +1049,7 @@ path_require(lua_State *L)
   lua_pushfstring(L, "luaopen_%s", name);  /* index 4 */
   func = (lua_CFunction)LL_SYM(handle, lua_tostring(L, -1));
   if (! func)
-    luaL_error(L, "no symbol " LUA_QS " in module " LUA_QS, 
+    luaL_error(L, "no symbol " LUA_QS " in module " LUA_QS,
                lua_tostring(L, -1), filename);
   lua_pushboolean(L, 1);
   lua_setfield(L, 2, name);
@@ -1109,7 +1104,7 @@ static const struct luaL_Reg paths__ [] = {
 };
 
 
-PATHS_API int 
+PATHS_API int
 luaopen_libpaths(lua_State *L)
 {
   lua_newtable(L);
